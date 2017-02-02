@@ -14,8 +14,9 @@ def index(request):
     context_dict = {'categories': category_list, 'pages': page_list}
     return render(request,'rango/index.html',context_dict)
 
+
 def about(request):
-    return HttpResponse("Rango Says this is the about page! </br> <a href='/rango/'>index</a>")
+    return render(request, 'rango/about.html', {})
 
 def show_category(request, category_name_slug):
     # Create a context dictionary which we can pass
