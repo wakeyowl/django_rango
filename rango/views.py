@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from rango.models import Category, Page
 from rango.forms import CategoryForm, PageForm
+from rango.forms import UserForm, UserProfileForm
 
 #
 # def index(request):
@@ -88,3 +89,47 @@ def add_page(request, category_name_slug):
     context_dict = {'form':form, 'category': category}
 
     return render(request, 'rango/add_page.html', context_dict)
+
+
+def register(request):
+
+    # Initial bool flag
+    registered = False
+
+    #  Check Http POST before processing
+    if request.method == "POST":
+        user_form = UserForm(data=request.POST)
+        profile_form = UserProfileForm(data=request.POST)
+
+        # Verify forms for user and profile form are valid
+        if user_form.is_valid() and profile_form.is_valid():
+            user = user_form.save()
+
+            # Set password Hash using set_password method
+            user.set_password(user.password)
+            user.save()
+
+            # Update UserProfile instance
+            profile = profile_form.save(commit=False)
+            profile.user = user
+
+            # Check if picture file included
+            if 'picture' in request.FILES:
+                profile.picture = request.FILES['picture']
+
+            # Save finally
+            profile.save()
+            registered = True
+
+        else:
+            print(user_form.errors, profile_form.errors)
+
+
+    else:
+        # Not HTTP POST so present the blank form ready for input - Initial Get request to the page
+        user_form = UserForm()
+        profile_form = UserProfileForm()
+
+    # Return Render the form - Depending on Context
+    return render(request, 'rango/register.html', {'user_form': user_form, 'profile_form': profile_form,
+                                              'registered': registered})
