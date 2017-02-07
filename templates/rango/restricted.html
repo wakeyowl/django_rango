@@ -1,0 +1,22 @@
+{% extends 'rango/base.html' %}
+{% load staticfiles %}
+{% block title_block %}
+    Restricted Page - User Logged In
+{% endblock %}
+
+{% block body_bock %}
+    {% if user.is_authenticated %}
+        <div>
+            <ul>
+                <li><a href="{% url 'restricted' %}">Restricted Page</a></li>
+                <li><a href="{% url 'logout' %}">Logout</a></li>
+            </ul>
+        </div>
+        <div>
+            {% block sidebar_block %}
+            {% endblock %}
+        </div>
+    {% else %}
+        <strong>Noting to see here</strong>
+    {% endif %}
+{% endblock %}

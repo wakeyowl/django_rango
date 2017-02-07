@@ -1,48 +1,59 @@
 {% extends 'rango/base.html' %}
 {% block title_block %}
-{% load staticfiles %}
+    {% load staticfiles %}
 
 {% endblock %}
 
-{%  block body_bock %}
-<h1>Rango says...</h1>
+{% block body_bock %}
 
-<div>
-    Hey there partner!
-</div>
-
-<div>
-    <div>
-        <h3>Most Liked Categories</h3>
+     <div>
+        {% if user.is_authenticated %}
+            howdy! {{ user.username }}
+        {% else %}
+            hey there partner
+        {% endif %}
     </div>
-    {% if categories %}
-    <ul>
-        {% for category in categories %}
-        <li>
-            <a href="{%  url 'show_category' category.slug %}">
-                {{ category.name }}
-            </a>
-        </li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <strong>There are no categories present.</strong>
-    {% endif %}
-</div>
 
-<div>
+    <ul>
+        {% if user.is_authenticated %}
+            <li><a href="{% url 'restricted' %}">Restricted Page</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+            <div>
+                <div>
+                    <h3>Most Liked Categories</h3>
+                </div>
+                {% if categories %}
+                    <ul>
+                        {% for category in categories %}
+                            <li>
+                                <a href="{% url 'show_category' category.slug %}">
+                                    {{ category.name }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <strong>There are no categories present.</strong>
+                {% endif %}
+            </div>
+
+            {% if pages %}
+                <ul>
+                    {% for page in pages %}
+                        <li><a href="{{ page.url }}">{{ page.title }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <strong>There are no categories present.</strong>
+            {% endif %}
+            </div>
+        {% else %}
+            <li><a href="{% url 'login' %}">Login</a></li>
+            <li><a href="{% url 'register' %}">Register</a></li>
+        {% endif %}
+    </ul>
 
     <div>
-        <h3>Most Viewed Pages</h3>
-    </div>
-    {% if pages %}
-    <ul>
-        {% for page in pages %}
-        <li><a href="{{ page.url }}">{{ page.title }}</a></li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <strong>There are no categories present.</strong>
-    {% endif %}
-</div>
+
+
 {% endblock %}
