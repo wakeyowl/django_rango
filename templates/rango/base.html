@@ -13,15 +13,15 @@
 <body>
 <div>
     {% block body_bock %}
+
+        {% if user.is_authenticated %}
+
+            {% block sidebar_block %}
+                {% get_category_list category %}
+            {% endblock %}
+            </div>
+        {% endif %}
     {% endblock %}
-</div>
-{% if user.is_authenticated %}
-    <div>
-        {% block sidebar_block %}
-            {% get_category_list category %}
-        {% endblock %}
-    </div>
-{% endif %}
 </body>
 <br/>
 <hr/>
@@ -32,7 +32,7 @@
         <li><a href="{% url 'index' %}">Index</a></li>
         <li><a href="{% url 'register' %}">Sign Up</a></li>
         <li><a href="{% url 'auth_login' %}">Login</a></li>
-        <li><a href="{% url 'auth_logout' %}? next=/rango/">Logout</a></li>
+        <li><a href="{% url 'auth_logout' %}?next=/rango/">Logout</a></li>
     </ul>
 </div>
 </body>
