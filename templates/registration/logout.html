@@ -1,7 +1,12 @@
-{% extends 'rango/base.html' %}
+{% extends 'rango/base_bootstrap.html' %}
 {% load staticfiles %}
+{% block title_block %}
+    Index
+{% endblock %}
 
-{% block body_bock %}
+{% block body_block %}
+
     <h1>Logged Out</h1>
     <p>You are now logged out</p>
+
 {% endblock %}

@@ -1,7 +1,11 @@
-{% extends 'rango/base.html' %}
+{% extends 'rango/base_bootstrap.html' %}
 {% load staticfiles %}
+{% block title_block %}
+    Register
+{% endblock %}
 
-{% block body_bock %}
+{% block body_block %}
+
     <h1>Register Here</h1>
     <form method="post" action=".">
         {% csrf_token %}
@@ -9,4 +13,5 @@
         <input type="submit" value="Submit"/>
 
     </form>
+
 {% endblock %}

@@ -1,4 +1,4 @@
-{% extends 'rango/base.html' %}
+{% extends 'rango/base_bootstrap.html' %}
 {% load staticfiles %}
 
 {% block title_block %}
@@ -6,12 +6,16 @@
 {% endblock %}
 
 {% block body_bock %}
-    <h1>Login to Rango</h1>
-    <form id="login_form" method="post" action="{% url 'login' %}">
-        {% csrf_token %}
-        Username: <input type="text" name="username" value="" size="50"/>
-        Password: <input type="password" name="password" value="" size="50"/>
-        <br/>
-        <input type="submit" value="submit" />
-    </form>
+    <div class="row marketing">
+        <div class="col-lg-6">
+            <h1>Login to Rango</h1>
+            <form id="login_form" method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                Username: <input type="text" name="username" value="" size="50"/>
+                Password: <input type="password" name="password" value="" size="50"/>
+                <br/>
+                <input type="submit" value="submit"/>
+            </form>
+        </div>
+    </div>
 {% endblock %}

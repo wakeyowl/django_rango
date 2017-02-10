@@ -1,11 +1,12 @@
-{% extends 'rango/base.html' %}
+{% extends 'rango/base_bootstrap.html' %}
 {% load staticfiles %}
 {% block title_block %}
-Add a Page
+    Index
 {% endblock %}
 
-{%  block body_bock %}
-<h1>Add a Page to {{category.name}}</h1>
+{% block body_block %}
+
+    <h1>Add a Page to {{category.name}}</h1>
 <div>
     <form id="page_form" method="post" action="/rango/category/{{ category.slug}}/add_page/">
         {% csrf_token %}
@@ -21,4 +22,5 @@ Add a Page
         <input type="submit" name="submit" value="Add Page"/>
     </form>
 </div>
+
 {% endblock %}
