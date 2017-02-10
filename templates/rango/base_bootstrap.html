@@ -22,7 +22,7 @@
 
   <body>
 
-<nav class="navbar navbar-toggleable-md navbar-inverse fixed-top bg-inverse">
+    <nav class="navbar navbar-toggleable-md navbar-inverse fixed-top bg-inverse">
       <button class="navbar-toggler navbar-toggler-right hidden-lg-up" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -61,14 +61,31 @@
       </div>
     </nav>
 
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
 
+            <ul class="nav nav-pills flex-column">
+		        <li class="nav-item">Type to find a category</li>
+	            <form>
+			        <li class="nav-item"><input class="search-query form-control" type="text"
+				        name="suggestion" value="" id="suggestion" />
+			        </li>
+		        </form>
+	        </ul>
+            <hr />
+	<div id="cats">
+	</div>
+
+
+        </div>
         <div class="col-sm-9 offset-sm-3 col-md-10 offset-md-2 main">
          {% block body_block %}{% endblock %}
 
 
         </div>
-
-
+      </div>
+    </div>
 
      <!-- Bootstrap core JavaScript
     ================================================== -->
