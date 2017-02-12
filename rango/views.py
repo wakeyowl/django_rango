@@ -1,14 +1,19 @@
-from datetime import datetime
-
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib.auth import logout, authenticate, login
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.shortcuts import redirect
 from django.core.urlresolvers import reverse
-
-from rango.models import Category, Page
-from rango.forms import CategoryForm, PageForm
-from rango.forms import UserForm, UserProfileForm
+from django.http import HttpResponse
+from rango.models import Category, Page, UserProfile
+from rango.forms import CategoryForm, PageForm, UserProfileForm, UserForm
+from datetime import datetime
+from rango.webhose_search import run_query
+from registration.backends.simple.views import RegistrationView
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+import json
+import urllib.parse  # Py3
+import urllib.request  # Py3
 
 
 #
@@ -209,12 +214,149 @@ def user_login(request):
         return render(request, 'rango/login.html', {})
 
 
+class RangoRegistrationView(RegistrationView):
+    def get_success_url(self, user):
+        return reverse('register_profile')
+
+
 @login_required
 def restricted(request):
     return render(request, 'rango/restricted.html', {})
 
+def search(request):
+    result_list = []
+    if request.method == 'POST':
+        query = request.POST['query'].strip()
+        if query:
+             # Run our Webhose function to get the results list!
+             result_list = run_query(query)
+    return render(request, 'rango/search.html', {'result_list': result_list})
 
 @login_required
 def user_logout(request):
     logout(request)
     return HttpResponseRedirect(reverse('index'))
+
+
+def track_url(request):
+    page_id = None
+    if request.method == 'GET':
+        if 'page_id' in request.GET:
+            page_id = request.GET['page_id']
+    if page_id:
+        try:
+            page = Page.objects.get(id=page_id)
+            page.views = page.views + 1
+            page.save()
+            return redirect(page.url)
+        except:
+            return HttpResponse("Page id {0} not found".format(page_id))
+    print("No page_id in get string")
+    return redirect(reverse('index'))
+
+
+@login_required
+def profile(request, username):
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return redirect('index')
+
+    userprofile = UserProfile.objects.get_or_create(user=user)[0]
+    form = UserProfileForm({'website': userprofile.website, 'picture': userprofile.picture})
+
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=userprofile)
+        if form.is_valid():
+            form.save(commit=True)
+            return redirect('profile', user.username)
+        else:
+            print(form.errors)
+
+    return render(request, 'rango/profile.html', {'userprofile': userprofile, 'selecteduser': user, 'form': form})
+
+@login_required
+def list_profiles(request):
+#    user_list = User.objects.all()
+    userprofile_list = UserProfile.objects.all()
+    return render(request, 'rango/list_profiles.html', { 'userprofile_list' : userprofile_list})
+
+
+@login_required
+def register_profile(request):
+    form = UserProfileForm()
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES)
+        if form.is_valid():
+            user_profile = form.save(commit=False)
+            user_profile.user = request.user
+            user_profile.save()
+
+            return redirect('index')
+        else:
+            print(form.errors)
+
+    context_dict = {'form': form}
+
+    return render(request, 'rango/profile_registration.html', context_dict)
+
+
+def read_webhose_key():
+    """
+#     Reads the Webhose API key from a file called 'search.key'.
+#     Returns either None (no key found), or a string representing the key.
+#     Remember: put search.key in your .gitignore file to avoid committing it!
+#     """
+    #     # See Python Anti-Patterns - it's an awesome resource!
+    #     # Here we are using "with" when opening files.
+    #     http://docs.quantifiedcode.com/python-anti-patterns/maintainability/
+    webhose_api_key = None
+    #
+    try:
+        with open('search.key', 'r') as f:
+            webhose_api_key = f.readline().strip()
+    except:
+        raise IOError('search.key file not found')
+
+    return webhose_api_key
+
+
+def run_query(search_terms, size=10):
+    """
+#     Given a string containing search terms (query), and a number of results to return (default of 10),
+#     returns a list of results from the Webhose API, with each result consisting of a title, link and summary.
+#     """
+    webhose_api_key = read_webhose_key()
+    #
+    if not webhose_api_key:
+        raise KeyError('Webhose key not found')
+    #
+    # What's the base URL for the Webhose API?
+    root_url = 'http://webhose.io/search'
+    #
+    #     # Format the query string - escape special characters.
+    query_string = urllib.parse.quote(search_terms)  # Py3
+    #
+    #     # Use string formatting to construct the complete API URL.
+    search_url = '{root_url}?token={key}&format=json&q={query}&sort=relevancy&size={size}'.format(
+        root_url=root_url,
+        key=webhose_api_key,
+        query=query_string,
+        size=size)
+    results = []
+
+    try:
+        # Connect to the Webhose API, and convert the response to a Python dictionary.
+        response = urllib.request.urlopen(search_url).read().decode('utf-8')  # Py3 (library, decode)
+        json_response = json.loads(response)
+
+        # Loop through the posts, appendng each to the results list as a dictionary.
+        for post in json_response['posts']:
+            results.append({'title': post['title'],
+                            'link': post['url'],
+                            'summary': post['text'][:200]})
+    except:
+        print("Error when querying the Webhose API")
+
+    # Return the list of results to the calling function.
+    return results
